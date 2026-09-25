@@ -1,12 +1,20 @@
 /**
  * Turns the resolved config into concrete provider objects.
- * This is the only file that knows which implementations exist.
+ * This is the only file that knows which implementations exist: adding a
+ * provider (say, Google's image model) means one new adapter file, one case
+ * here, and one name in config.ts.
  */
 import type { Config } from '../config';
 import { createLocalImageStore } from '../storage/local';
+import { createS3ImageStore } from '../storage/s3';
+import { createFalImageProvider } from './image-fal';
 import { createMockImageProvider } from './image-mock';
+import { createOpenAIImageProvider } from './image-openai';
 import { createMockSourceProvider } from './source-mock';
+import { createWiktionarySourceProvider } from './source-wiktionary';
+import { createAnthropicTextProvider } from './text-anthropic';
 import { createMockTextProvider } from './text-mock';
+import { createOpenAITextProvider } from './text-openai';
 import type { ImageProvider, ImageStore, SourceProvider, TextProvider } from './types';
 
 export interface Providers {
@@ -21,38 +29,37 @@ export function createProviders(config: Config): Providers {
     text: createTextProvider(config),
     image: createImageProvider(config),
     source: createSourceProvider(config),
-    store: createImageStore(config),
+    store: config.s3 ? createS3ImageStore(config.s3) : createLocalImageStore(),
   };
 }
 
-function createTextProvider(config: Config): TextProvider {
-  switch (config.text.provider) {
+function createTextProvider({ text }: Config): TextProvider {
+  switch (text.provider) {
+    case 'anthropic':
+      return createAnthropicTextProvider({ apiKey: text.apiKey!, model: text.model });
+    case 'openai':
+      return createOpenAITextProvider({ apiKey: text.apiKey!, model: text.model });
     case 'mock':
       return createMockTextProvider();
-    default:
-      throw new Error(`Text provider "${config.text.provider}" is not implemented yet.`);
   }
 }
 
-function createImageProvider(config: Config): ImageProvider {
-  switch (config.image.provider) {
+function createImageProvider({ image }: Config): ImageProvider {
+  switch (image.provider) {
+    case 'fal':
+      return createFalImageProvider({ apiKey: image.apiKey!, model: image.model });
+    case 'openai':
+      return createOpenAIImageProvider({ apiKey: image.apiKey!, model: image.model });
     case 'mock':
       return createMockImageProvider();
-    default:
-      throw new Error(`Image provider "${config.image.provider}" is not implemented yet.`);
   }
 }
 
-function createSourceProvider(config: Config): SourceProvider {
-  switch (config.source.provider) {
+function createSourceProvider({ source }: Config): SourceProvider {
+  switch (source.provider) {
+    case 'wiktionary':
+      return createWiktionarySourceProvider({ userAgent: source.userAgent });
     case 'mock':
       return createMockSourceProvider();
-    default:
-      throw new Error(`Source provider "${config.source.provider}" is not implemented yet.`);
   }
-}
-
-function createImageStore(config: Config): ImageStore {
-  if (config.s3) throw new Error('S3 storage is not implemented yet.');
-  return createLocalImageStore();
 }

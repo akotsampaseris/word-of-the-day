@@ -23,7 +23,7 @@ This was fetched from Wiktionary for this entry. It is the only acceptable basis
 ${formatSourceMaterial(source)}
 
 FIELDS
-- pronunciation: IPA between slashes. Copy it from the source material when one is given; if several are given, use the first.
+- pronunciation: the English pronunciation in IPA, between slashes. Copy it from the English entry (Source 1) when it gives one; if it gives several, use the first. Never use a pronunciation from another language's entry.
 - partOfSpeech: lowercase, e.g. "noun", "verb", "adjective", for the sense you define.
 - definition: ${DEFINITION_SENTENCES.min} or ${DEFINITION_SENTENCES.max} sentences, at most 300 characters, in plain modern English, based on the source definitions. Do not begin with the word itself (not "${word}: ..." and not "A ${word} is ..."). Begin directly with the meaning.
 - etymology: ${ETYMOLOGY_SENTENCES.min} to ${ETYMOLOGY_SENTENCES.max} sentences, at most 800 characters. Use only facts stated in the source material. You may explain those facts for a general reader, for example by saying what a source language was or how the original meaning led to the modern one. Never add a language, date, root, person or claim that the source material does not contain. If the source says the origin is uncertain or unknown, say so plainly.
