@@ -1,0 +1,4 @@
+# pnpm 11 refuses to run dependency build scripts unless they are listed here,
+# and `pnpm install` exits non-zero if an unlisted one is found.
+allowBuilds:
+  esbuild: true

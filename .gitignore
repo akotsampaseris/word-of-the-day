@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.astro/
+
+# Secrets. Only .env.example is committed.
+.env
+.env.*
+!.env.example
+
+# Mock images are regenerated from content/*.json on every dev/build run,
+# so no image ever lives in git (see README: "Why mock images aren't committed").
+public/mock-images/
+
+.DS_Store
+*.log
