@@ -1,0 +1,139 @@
+# Generates new drafts every day and proposes them in a pull request.
+#
+# The pull request is the review gate: nothing is committed to the default
+# branch directly, and nothing is published until a human runs
+# `pnpm pipeline:approve <date>` and merges.
+#
+# All drafts go on ONE long-lived branch with ONE open pull request. If
+# yesterday's PR has not been merged yet, today's run continues on the same
+# branch, so it only fills the new gaps instead of regenerating (and paying
+# for) the same days again.
+name: Generate drafts
+
+on:
+  schedule:
+    # 05:17 UTC daily. Off the hour, because GitHub delays jobs at :00.
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# Never run two generations at once.
+concurrency:
+  group: generate-drafts
+  cancel-in-progress: false
+
+env:
+  DRAFTS_BRANCH: pipeline/drafts
+  # Pull requests opened with the default GITHUB_TOKEN do not trigger other
+  # workflows (so CI would not run on the drafts PR). Add a fine-grained
+  # personal access token as the DRAFTS_PR_TOKEN secret to fix that.
+  GH_TOKEN: ${{ secrets.DRAFTS_PR_TOKEN || github.token }}
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.DRAFTS_PR_TOKEN || github.token }}
+
+      - uses: pnpm/action-setup@v6
+        with:
+          cache: true
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Switch to the drafts branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Scheduled runs have no repository info in their event payload, so ask the API.
+          DEFAULT_BRANCH=$(gh repo view "$GITHUB_REPOSITORY" --json defaultBranchRef --jq .defaultBranchRef.name)
+          echo "DEFAULT_BRANCH=$DEFAULT_BRANCH" >> "$GITHUB_ENV"
+          open_pr=$(gh pr list --head "$DRAFTS_BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$open_pr" ]; then
+            echo "Continuing on the open drafts PR #$open_pr."
+            git checkout -B "$DRAFTS_BRANCH" "origin/$DRAFTS_BRANCH"
+            git merge --no-edit "origin/$DEFAULT_BRANCH"
+            echo "FRESH_BRANCH=false" >> "$GITHUB_ENV"
+          else
+            echo "No open drafts PR; starting a fresh branch from $DEFAULT_BRANCH."
+            git checkout -B "$DRAFTS_BRANCH" "origin/$DEFAULT_BRANCH"
+            echo "FRESH_BRANCH=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Generate drafts
+        id: generate
+        env:
+          # Fail instead of quietly opening a PR full of placeholder content.
+          REQUIRE_REAL_PROVIDERS: '1'
+          # Settings (Settings → Secrets and variables → Actions → Variables).
+          SITE_URL: ${{ vars.SITE_URL }}
+          SITE_TIMEZONE: ${{ vars.SITE_TIMEZONE }}
+          BUFFER_DAYS: ${{ vars.BUFFER_DAYS }}
+          MAX_ATTEMPTS: ${{ vars.MAX_ATTEMPTS }}
+          TEXT_PROVIDER: ${{ vars.TEXT_PROVIDER }}
+          TEXT_MODEL: ${{ vars.TEXT_MODEL }}
+          IMAGE_PROVIDER: ${{ vars.IMAGE_PROVIDER }}
+          IMAGE_MODEL: ${{ vars.IMAGE_MODEL }}
+          STYLE_ANCHOR_URLS: ${{ vars.STYLE_ANCHOR_URLS }}
+          WIKTIONARY_USER_AGENT: ${{ vars.WIKTIONARY_USER_AGENT }}
+          S3_BUCKET: ${{ vars.S3_BUCKET }}
+          S3_REGION: ${{ vars.S3_REGION }}
+          S3_ENDPOINT: ${{ vars.S3_ENDPOINT }}
+          S3_PUBLIC_BASE_URL: ${{ vars.S3_PUBLIC_BASE_URL }}
+          S3_KEY_PREFIX: ${{ vars.S3_KEY_PREFIX }}
+          S3_FORCE_PATH_STYLE: ${{ vars.S3_FORCE_PATH_STYLE }}
+          # Secrets (Settings → Secrets and variables → Actions → Secrets).
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          FAL_KEY: ${{ secrets.FAL_KEY }}
+          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+        run: pnpm pipeline:generate --summary "$RUNNER_TEMP/summary.md"
+
+      # Runs even if generation stopped early (a provider outage), so drafts
+      # that were already written and paid for are kept.
+      - name: Commit and push the drafts
+        id: commit
+        if: ${{ !cancelled() && steps.generate.outcome != 'skipped' }}
+        run: |
+          git add content
+          if git diff --cached --quiet; then
+            echo "No new drafts."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "Add word drafts ($(date -u +%F))"
+          if [ "$FRESH_BRANCH" = "true" ]; then
+            # Any old branch left over from a merged or closed PR is stale.
+            git push --force origin "$DRAFTS_BRANCH"
+          else
+            git push origin "$DRAFTS_BRANCH"
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open the pull request, or comment on the open one
+        if: ${{ !cancelled() && steps.commit.outputs.changed == 'true' }}
+        run: |
+          body="$RUNNER_TEMP/summary.md"
+          [ -f "$body" ] || echo "Generation stopped before writing a summary. See the workflow log." > "$body"
+          open_pr=$(gh pr list --head "$DRAFTS_BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$open_pr" ]; then
+            gh pr comment "$open_pr" --body-file "$body"
+          else
+            gh pr create \
+              --head "$DRAFTS_BRANCH" \
+              --base "$DEFAULT_BRANCH" \
+              --title "Word drafts awaiting review" \
+              --body-file "$body"
+          fi
