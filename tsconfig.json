@@ -3,8 +3,13 @@
     "target": "ES2023",
     "module": "preserve",
     "moduleResolution": "bundler",
-    "lib": ["ES2023"],
-    "types": ["node"],
+    "lib": [
+      "ES2023"
+    ],
+    "types": [
+      "node",
+      "astro/client"
+    ],
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
@@ -12,5 +17,10 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["pipeline", "tests", "*.ts"]
+  "include": [
+    "pipeline",
+    "src",
+    "tests",
+    "*.ts"
+  ]
 }

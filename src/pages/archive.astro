@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+import { getPublishedEntries } from '../lib/entries';
+import { formatShortDate, permalinkPath } from '../lib/format';
+import { SITE_NAME } from '../lib/site';
+
+const entries = getPublishedEntries(); // newest first
+const latest = entries[0];
+---
+
+<Base
+  title={`Archive · ${SITE_NAME}`}
+  description={`Every word so far: ${entries.length} and counting.`}
+  path="/archive/"
+  image={latest?.image}
+>
+  <h1 class="page-title">Archive</h1>
+  {entries.length === 0 && <p class="empty">Nothing here yet.</p>}
+  <ol class="archive">
+    {entries.map((entry) => (
+      <li>
+        <a class="archive-item" href={permalinkPath(entry.slug)}>
+          <img src={entry.image.url} alt="" width="96" height="96" loading="lazy" decoding="async" />
+          <span class="archive-text">
+            <span class="archive-word">{entry.word}</span>
+            <time class="archive-date" datetime={entry.date}>{formatShortDate(entry.date)}</time>
+            <span class="archive-definition">{entry.definition}</span>
+          </span>
+        </a>
+      </li>
+    ))}
+  </ol>
+</Base>

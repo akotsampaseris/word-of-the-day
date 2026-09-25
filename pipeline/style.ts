@@ -12,7 +12,8 @@ export const STYLE_PREAMBLE =
   'Square editorial illustration in the style of a vintage risograph print. ' +
   'Limited palette of deep teal, warm vermilion and ochre on cream paper, with visible paper grain, ' +
   'slight ink misregistration and subtle halftone shading. Flat, simple shapes and a calm composition ' +
-  'with generous negative space. No text, no letters, no words, no signature, no border.';
+  'with generous negative space, the main subject centred so the image still works when cropped to a wide banner. ' +
+  'No text, no letters, no words, no signature, no border.';
 
 /** Added only when style-anchor images are sent along with the prompt. */
 export const REFERENCE_INSTRUCTION =

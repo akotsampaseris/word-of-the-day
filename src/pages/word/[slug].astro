@@ -1,0 +1,37 @@
+---
+/** Permalink for every published word: /word/<slug>/ */
+import type { Entry } from '../../../pipeline/schema';
+import WordEntry from '../../components/WordEntry.astro';
+import Base from '../../layouts/Base.astro';
+import { getPublishedEntries } from '../../lib/entries';
+import { permalinkPath } from '../../lib/format';
+import { SITE_NAME } from '../../lib/site';
+
+export function getStaticPaths() {
+  // Newest first, so the entry before this one in the list is the newer word.
+  const entries = getPublishedEntries();
+  return entries.map((entry, index) => ({
+    params: { slug: entry.slug },
+    props: { entry, newer: entries[index - 1], older: entries[index + 1] },
+  }));
+}
+
+interface Props {
+  entry: Entry;
+  newer?: Entry;
+  older?: Entry;
+}
+
+const { entry, newer, older } = Astro.props;
+---
+
+<Base
+  title={`${entry.word} · ${SITE_NAME}`}
+  description={`${entry.word} (${entry.partOfSpeech}): ${entry.definition}`}
+  path={permalinkPath(entry.slug)}
+  image={entry.image}
+  type="article"
+  publishedDate={entry.date}
+>
+  <WordEntry entry={entry} newer={newer} older={older} />
+</Base>

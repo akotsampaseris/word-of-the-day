@@ -1,0 +1,30 @@
+---
+/**
+ * Today's word. If today has no approved entry, this quietly shows the most
+ * recent published one instead (its date is displayed, so it is not misleading).
+ */
+import WordEntry from '../components/WordEntry.astro';
+import Base from '../layouts/Base.astro';
+import { getPublishedEntries } from '../lib/entries';
+import { SITE_DESCRIPTION, SITE_NAME } from '../lib/site';
+
+const entries = getPublishedEntries();
+const entry = entries[0];
+---
+
+{
+  entry ? (
+    <Base
+      title={`${SITE_NAME}: ${entry.word}`}
+      description={`${entry.word} (${entry.partOfSpeech}): ${entry.definition}`}
+      path="/"
+      image={entry.image}
+    >
+      <WordEntry entry={entry} older={entries[1]} linkWord />
+    </Base>
+  ) : (
+    <Base title={SITE_NAME} description={SITE_DESCRIPTION} path="/">
+      <p class="empty">The first word is on its way. Check back soon.</p>
+    </Base>
+  )
+}

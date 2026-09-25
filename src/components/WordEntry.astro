@@ -1,0 +1,63 @@
+---
+import type { Entry } from '../../pipeline/schema';
+import { displayUrl, formatDate, paragraphs, permalinkPath } from '../lib/format';
+
+interface Props {
+  entry: Entry;
+  /** Neighbouring published entries, for the previous/next links. */
+  newer?: Entry;
+  older?: Entry;
+  /** Link the word to its permalink (used on the home page). */
+  linkWord?: boolean;
+}
+
+const { entry, newer, older, linkWord = false } = Astro.props;
+---
+
+<article class="entry">
+  <p class="entry-date"><time datetime={entry.date}>{formatDate(entry.date)}</time></p>
+  <h1 class="entry-word">
+    {linkWord ? <a href={permalinkPath(entry.slug)}>{entry.word}</a> : entry.word}
+  </h1>
+  <p class="entry-meta">
+    <span class="pronunciation">{entry.pronunciation}</span>
+    <span class="part-of-speech">{entry.partOfSpeech}</span>
+  </p>
+
+  <img
+    class="entry-image"
+    src={entry.image.url}
+    alt={entry.image.alt}
+    width="1024"
+    height="1024"
+    decoding="async"
+    fetchpriority="high"
+  />
+
+  <p class="entry-definition">{entry.definition}</p>
+
+  <section class="entry-section" aria-labelledby="etymology-heading">
+    <h2 id="etymology-heading">Etymology</h2>
+    <p>{entry.etymology}</p>
+    <p class="sources-label">Sources</p>
+    <ul class="sources">
+      {entry.etymologySources.map((url) => (
+        <li><a href={url} rel="noopener">{displayUrl(url)}</a></li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="entry-section" aria-labelledby="story-heading">
+    <h2 id="story-heading">A very short story</h2>
+    <div class="story">
+      {paragraphs(entry.story).map((paragraph) => <p>{paragraph}</p>)}
+    </div>
+  </section>
+
+  {(newer || older) && (
+    <nav class="entry-nav" aria-label="More words">
+      {older ? <a class="older" href={permalinkPath(older.slug)}><span>Previous</span>{older.word}</a> : <span />}
+      {newer ? <a class="newer" href={permalinkPath(newer.slug)}><span>Next</span>{newer.word}</a> : <span />}
+    </nav>
+  )}
+</article>
