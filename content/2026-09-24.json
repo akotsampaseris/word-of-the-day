@@ -1,0 +1,22 @@
+{
+  "slug": "velleity",
+  "word": "velleity",
+  "date": "2026-09-24",
+  "status": "approved",
+  "pronunciation": "/ˈplæs.həʊl.də/",
+  "partOfSpeech": "placeholder",
+  "definition": "Placeholder definition written by the mock text provider. Run the pipeline with a real text provider to get the actual meaning.",
+  "etymology": "No etymology was fetched, because the pipeline ran in mock mode. With real providers, this paragraph is rewritten from the Wiktionary entry listed under sources.",
+  "etymologySources": [
+    "https://example.invalid/mock-source/velleity"
+  ],
+  "story": "The lighthouse keeper kept a tin box of words that visitors left behind. Most were ordinary: harbour, kettle, rain. On the first cold morning of the year she found a new card wedged under the door, and on it, in careful green ink, was the word \"velleity\". She did not know what it meant. She said it aloud to the gulls, who were unimpressed, and then to the lamp, which was patient with her as always. By noon she had decided it must describe the particular silver of the sea before a storm. By evening she was sure it was the name of a small, stubborn fish. That night she wrote both guesses on the back of the card and filed it with the others. Somewhere, she hoped, a stranger was waiting to tell her she was wrong. Until then, \"velleity\" belonged to her, and she said it every time the light came round.",
+  "image": {
+    "url": "/mock-images/2026-09-24-velleity-6f0867163f.svg",
+    "prompt": "Square editorial illustration in the style of a vintage risograph print. Limited palette of deep teal, warm vermilion and ochre on cream paper, with visible paper grain, slight ink misregistration and subtle halftone shading. Flat, simple shapes and a calm composition with generous negative space. No text, no letters, no words, no signature, no border. Subject: a lighthouse at dusk with a single card pinned to its door.",
+    "provider": "mock",
+    "model": "mock-svg-v1",
+    "alt": "Placeholder image showing the word \"velleity\"."
+  },
+  "generatedAt": "2026-09-25T18:58:49.741Z"
+}

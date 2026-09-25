@@ -4,9 +4,9 @@
  */
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { MOCK_IMAGES_DIR } from '../paths';
 import type { GeneratedImage, ImageStore } from '../providers/types';
 
-export const MOCK_IMAGES_DIR = path.join('public', 'mock-images');
 export const MOCK_IMAGES_URL_PREFIX = '/mock-images/';
 
 export function createLocalImageStore(directory: string = MOCK_IMAGES_DIR): ImageStore {

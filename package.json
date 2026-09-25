@@ -10,7 +10,13 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "pipeline:generate": "tsx pipeline/cli.ts generate",
+    "pipeline:validate": "tsx pipeline/cli.ts validate",
+    "pipeline:approve": "tsx pipeline/cli.ts approve",
+    "pipeline:status": "tsx pipeline/cli.ts status",
+    "pipeline:announce": "tsx pipeline/cli.ts announce",
+    "pipeline:mock-assets": "tsx pipeline/cli.ts mock-assets"
   },
   "dependencies": {
     "zod": "^4.6.5"

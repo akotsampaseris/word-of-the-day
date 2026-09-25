@@ -14,26 +14,35 @@ export const ETYMOLOGY_SENTENCES = { min: 2, max: 4 };
 /** House style bans em-dashes. A double hyphen is the plain-text spelling of one. */
 const EM_DASH_PATTERN = /—|--/g;
 
-/** The subset of an entry the content rules look at. */
+/**
+ * The subset of an entry the content rules look at. Text fields are `unknown`
+ * because this also runs on raw model output: a field that is missing or not a
+ * string is skipped here (the schema check reports it instead).
+ */
 export interface RuleInput {
   word: string;
-  definition: string;
-  etymology: string;
-  story: string;
+  definition?: unknown;
+  etymology?: unknown;
+  story?: unknown;
   etymologySources: unknown[];
 }
 
 /** Runs every content rule and returns all failures (empty array = pass). */
 export function checkContentRules(input: RuleInput): string[] {
-  const results = [
-    storyContainsWord(input.story, input.word),
-    definitionDoesNotRestateWord(input.definition, input.word),
-    etymologySourcesAreValid(input.etymologySources),
-    storyHasNoEmDashes(input.story),
-    storyWordCountInRange(input.story),
-    definitionSentenceCountInRange(input.definition),
-    etymologySentenceCountInRange(input.etymology),
-  ];
+  const { word, definition, etymology, story } = input;
+  const results: (string | null)[] = [];
+
+  if (typeof story === 'string') {
+    results.push(storyContainsWord(story, word), storyHasNoEmDashes(story), storyWordCountInRange(story));
+  }
+  if (typeof definition === 'string') {
+    results.push(definitionDoesNotRestateWord(definition, word), definitionSentenceCountInRange(definition));
+  }
+  if (typeof etymology === 'string') {
+    results.push(etymologySentenceCountInRange(etymology));
+  }
+  results.push(etymologySourcesAreValid(input.etymologySources));
+
   return results.filter((result): result is string => result !== null);
 }
 

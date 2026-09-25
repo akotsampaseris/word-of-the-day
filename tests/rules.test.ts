@@ -27,7 +27,12 @@ describe('checkContentRules', () => {
     const errors = checkContentRules(
       validEntry({ definition: 'Gongoozler: a canal watcher.', story: 'Too short — and no word.' }),
     );
-    expect(errors.map((error) => error.split(':')[0])).toEqual(['story', 'definition', 'story', 'story']);
+    // Missing word, em-dash, too short; then the definition restating the word.
+    expect(errors.map((error) => error.split(':')[0])).toEqual(['story', 'story', 'story', 'definition']);
+  });
+
+  it('skips rules for fields that are missing or not strings', () => {
+    expect(checkContentRules({ word: 'ort', story: 42, etymologySources: ['https://x.org/ort'] })).toEqual([]);
   });
 });
 
